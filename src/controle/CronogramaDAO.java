@@ -23,37 +23,40 @@ public class CronogramaDAO {
     private Cronograma cronograma;
     private List<Cronograma> cronogramas;
     
-     public void incluir(Cronograma objcronograma) throws SQLException {
-         try {
-             sql = "insert into cronograma(cromateria, crodiasemana, crosemana, croestudodiario) values(?,?,?,?)";
-       
+     public void incluir(Cronograma objcronograma) throws SQLException, ClassNotFoundException {
+         sql = "insert into cronograma(cromateria, crodiasemana, crosemana, croestudodiario) values(?,?,?,?)";
             Conexao conexao = new Conexao();
-      
-            PreparedStatement pstmt = conexao.getConexao().prepareStatement(sql);
-            pstmt.setString(1, objcronograma.getNomemateria());
-            pstmt.setString(2, objcronograma.getDiaSemana());
-            pstmt.setString(3, objcronograma.getSemana());
-            pstmt.setString(4, objcronograma.getEstudoDiario());
+            PreparedStatement pst = null;
+         try {
+                   
+            pst = conexao.getConexao().prepareStatement(sql);
+            pst.setString(1, objcronograma.getNomemateria());
+            pst.setString(2, objcronograma.getDiaSemana());
+            pst.setString(3, objcronograma.getSemana());
+            pst.setString(4, objcronograma.getEstudoDiario());
          //   pstmt.setInt(5, objcronograma.getMateria().getId());
-            pstmt.executeUpdate();
-            pstmt.close();
+            pst.executeUpdate();
+            //pst.close();
              
          } catch (SQLException e) {
               e.getMessage();
-         }   
+         }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+        }    
    }
-    public List<Cronograma> buscarPornome( String objsemana, String objcronograma){
+    public List<Cronograma> buscarPornome( String objsemana, String objcronograma) throws ClassNotFoundException{
        sql = "select cromateria from cronograma where crodiasemana like ? and crosemana = ? ";
        cronogramas = new ArrayList<>();
-       Cronograma cronograma = null;
+       cronograma = null;
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt;
+       PreparedStatement pst = null;
        ResultSet result;
         try {
-            pstmt = conexao.getConexao().prepareStatement(sql);
-            pstmt.setString(1, "%"+objsemana+"%");
-             pstmt.setString(2, objcronograma);
-            result = pstmt.executeQuery();
+            pst = conexao.getConexao().prepareStatement(sql);
+            pst.setString(1, "%"+objsemana+"%");
+             pst.setString(2, objcronograma);
+            result = pst.executeQuery();
            // MateriaDAO materiaDAO = new MateriaDAO();
             while(result.next()){
                 cronograma = new Cronograma();
@@ -66,23 +69,26 @@ public class CronogramaDAO {
             
         } catch (SQLException e) {
             e.getMessage();
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
         }
          
        return  cronogramas;
      
    }
-    public List<Cronograma> buscarPornome1(String objcronograma){
+    public List<Cronograma> buscarPornome1(String objcronograma) throws ClassNotFoundException{
        sql = "select cro from cronograma where crosemana = ? ";
        cronogramas = new ArrayList<>();
-       Cronograma cronograma = null;
+       cronograma = null;
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt;
+       PreparedStatement pst = null;
        ResultSet result;
         try {
-            pstmt = conexao.getConexao().prepareStatement(sql);
-            pstmt.setString(1, objcronograma);
+            pst = conexao.getConexao().prepareStatement(sql);
+            pst.setString(1, objcronograma);
            
-            result = pstmt.executeQuery();
+            result = pst.executeQuery();
            // MateriaDAO materiaDAO = new MateriaDAO();
             while(result.next()){
                 cronograma = new Cronograma();
@@ -95,28 +101,35 @@ public class CronogramaDAO {
             
         } catch (SQLException e) {
             e.getMessage();
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
         }
          
        return  cronogramas;
      
-   }
-    public void alterar(Cronograma objcronograma){
-        try {
-            sql = "update cronograma set cromateria=?, crodiasemana=?, crosemana=?, croestudodiario =? wnere cromateria=? and crosemana=? ";
+   }/*
+    public void alterar(Cronograma objcronograma) throws ClassNotFoundException{
+        sql = "update cronograma set cromateria=?, crodiasemana=?, crosemana=?, croestudodiario =? wnere cromateria=? and crosemana=? ";
             Conexao conexao = new Conexao();
-            PreparedStatement pstmt = conexao.getConexao().prepareStatement(sql);
-       pstmt.setString(1,objcronograma.getMateria().getNome());
-       pstmt.setString(2, objcronograma.getDiaSemana());
-       pstmt.setString(3, objcronograma.getSemana());
-       pstmt.setString(4, objcronograma.getEstudoDiario());
-       pstmt.setString(5, objcronograma.getMateria().getNome());
-       pstmt.setString(6, objcronograma.getSemana());
+            PreparedStatement pst = null;
+        try {
+             pst = conexao.getConexao().prepareStatement(sql);
+       pst.setString(1,objcronograma.getMateria().getNome());
+       pst.setString(2, objcronograma.getDiaSemana());
+       pst.setString(3, objcronograma.getSemana());
+       pst.setString(4, objcronograma.getEstudoDiario());
+       pst.setString(5, objcronograma.getMateria().getNome());
+       pst.setString(6, objcronograma.getSemana());
        
-       pstmt.execute();
+       pst.execute();
                            
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.getMessage();
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
         }
-    }
+    }*/
     
 }

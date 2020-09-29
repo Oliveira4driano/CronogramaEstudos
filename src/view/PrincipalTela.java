@@ -9,19 +9,19 @@ import com.toedter.calendar.JDateChooser;
 import controle.ConteudoDAO;
 import controle.EditalDAO;
 import controle.MateriaDAO;
+import java.awt.HeadlessException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.plaf.OptionPaneUI;
 import model.Conteudo;
 import model.ConteudoTabelaModelo;
 import model.Cronometro;
@@ -38,17 +38,17 @@ import model.MateriaTabelaModelo;
  */
 public final class PrincipalTela extends javax.swing.JFrame {
     
-   private Conteudo conteudo = new Conteudo();
-   private Cronometro cronometro = new Cronometro();
-   private Materia materiaSelecionada = new Materia();  //Criada para não mexer no filtro para não sumir o filtro que estava na tela
+   private final Conteudo conteudo = new Conteudo();
+   private final Cronometro cronometro = new Cronometro();
+   private final Materia materiaSelecionada = new Materia();  //Criada para não mexer no filtro para não sumir o filtro que estava na tela
    
    
    private List<Materia> materias = new ArrayList<>();
    private List<Conteudo> conteudos =  new ArrayList<>();
     private List<Edital> editais = new ArrayList<>();
     
-   private MateriaDAO daoMateria = new MateriaDAO(); 
-   private EditalDAO daoE = new EditalDAO();
+   private final MateriaDAO daoMateria = new MateriaDAO(); 
+   private final EditalDAO daoE = new EditalDAO();
    private ConteudoDAO daoConteudo = new ConteudoDAO();
   
    
@@ -72,7 +72,7 @@ public final class PrincipalTela extends javax.swing.JFrame {
      materiaSelecionada.setNome(campoPesquisa.getText());
     }
     
-    private void pesquisarFiltro(){
+    private void pesquisarFiltro() throws ClassNotFoundException{
        // MateriaDAO dao = new MateriaDAO();
          try{
             materias=daoMateria.pesquisar(materiaSelecionada);
@@ -80,7 +80,7 @@ public final class PrincipalTela extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados: "+e.getMessage());
         }
     }
-    private void pesquisar(){
+    private void pesquisar() throws ClassNotFoundException{
         preencherFiltro();
         pesquisarFiltro();
         preencheTabelaMateria();
@@ -91,21 +91,27 @@ public final class PrincipalTela extends javax.swing.JFrame {
        
        int linha = tabelaMateria.getSelectedRow();
        String nome = String.valueOf(tabelaMateria.getValueAt(linha, 2));
-       System.out.println("nome "+ nome);
         try {
             editais = daoE.buscarPornome(nome);
             
-            for (Edital edital : editais) {
-           labelEdital.setText( edital.getNome());
-           labelCargo.setText(edital.getCargo());
-           labelBancar.setText(edital.getBanca());
-           labelProva.setText(edital.getDataprova());
-                     
-            labelDias.setText("Faltam: "+String.valueOf(dataProva(edital.getDataprova()))+" dia(s) para a prova");
-            }   
+            editais.stream().map((edital) -> {
+                labelEdital.setText( edital.getNome());
+               return edital;
+           }).map((edital) -> {
+               labelCargo.setText(edital.getCargo());
+               return edital;
+           }).map((edital) -> {
+               labelBancar.setText(edital.getBanca());   
+               return edital;
+           }).map((edital) -> {
+               labelProva.setText(edital.getDataprova());
+               return edital;
+           }).forEachOrdered((Edital edital) -> {
+               labelDias.setText("Faltam: "+String.valueOf(dataProva(edital.getDataprova()))+" dia(s) para a prova");
+            });
             
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados!");
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados!"+e);
         }
     }
         
@@ -127,8 +133,8 @@ public final class PrincipalTela extends javax.swing.JFrame {
         try {
             conteudos =   daoConteudo.buscarPornome(nome);
           
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados!");
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados!"+e);
         }
     }
     protected void conteudoSelecionado(){
@@ -166,7 +172,7 @@ public final class PrincipalTela extends javax.swing.JFrame {
         long dtretorno = 0, fuso =  (3600000*24); // hora para compensar horário de verão  
         Date d1, d2;
       
-        DateFormat df = new SimpleDateFormat ("dd-MM-yyyy");  
+        DateFormat df = new SimpleDateFormat ("dd/MM/yyyy");  
 	           df.setLenient(false); //não deixa inserir um valor alem de 12 meses
        try {   	        
                 d1 = new Date();  //data atual 
@@ -275,14 +281,14 @@ public final class PrincipalTela extends javax.swing.JFrame {
          daoConteudo = new ConteudoDAO();   
         try {
             daoConteudo.alterarData(conteudo);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,"InserirData Ocorreu um erro de banco de dados!");
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(this,"InserirData Ocorreu um erro de banco de dados!"+e);
         }
         
     }
     
 
-    private void cronometroGravar(){
+    private void cronometroGravar() throws ClassNotFoundException{
           // ConteudoDAO conteudoDAO;     
         try {      
                daoConteudo.alterar(conteudo);
@@ -291,8 +297,8 @@ public final class PrincipalTela extends javax.swing.JFrame {
                botoes(false);
                JOptionPane.showMessageDialog(this,"Gravado com sucesso!");
            
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados!");
+        } catch (HeadlessException e) {
+            JOptionPane.showMessageDialog(this,"Ocorreu um erro de banco de dados!"+e);
         }    
         
     }
@@ -404,7 +410,7 @@ public final class PrincipalTela extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel6)
                             .addComponent(labelCargo))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 251, Short.MAX_VALUE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel7)
                             .addComponent(labelBancar))
@@ -437,7 +443,7 @@ public final class PrincipalTela extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 260, Short.MAX_VALUE)
+            .addGap(0, 503, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -663,7 +669,7 @@ public final class PrincipalTela extends javax.swing.JFrame {
                                 .addComponent(campoPesquisa, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(botaoPesquisar))
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 746, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 759, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
@@ -672,8 +678,8 @@ public final class PrincipalTela extends javax.swing.JFrame {
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(115, 115, 115))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 221, Short.MAX_VALUE))))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1049, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
                 .addGap(35, 35, 35)
                 .addComponent(versao)
@@ -766,7 +772,11 @@ public final class PrincipalTela extends javax.swing.JFrame {
 
     private void botaoGravarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botaoGravarActionPerformed
         preencherConteudo();
-        cronometroGravar();
+       try {
+           cronometroGravar();
+       } catch (ClassNotFoundException ex) {
+           Logger.getLogger(PrincipalTela.class.getName()).log(Level.SEVERE, null, ex);
+       }
         pesquisarConteudoBD();
         preencheTabelaConteudo();
         
@@ -789,7 +799,11 @@ public final class PrincipalTela extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem6ActionPerformed
 
     private void botaoPesquisarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botaoPesquisarActionPerformed
-        pesquisar();
+       try {
+           pesquisar();
+       } catch (ClassNotFoundException ex) {
+           Logger.getLogger(PrincipalTela.class.getName()).log(Level.SEVERE, null, ex);
+       }
     }//GEN-LAST:event_botaoPesquisarActionPerformed
 
     public static void main(String args[]) {
@@ -801,15 +815,12 @@ public final class PrincipalTela extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PrincipalTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PrincipalTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PrincipalTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(PrincipalTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+       //</editor-fold>
+       //</editor-fold>
+       
         //</editor-fold>
         //</editor-fold>
         
@@ -818,12 +829,8 @@ public final class PrincipalTela extends javax.swing.JFrame {
         
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new PrincipalTela().setVisible(true);
-            }
-            
-          
+        java.awt.EventQueue.invokeLater(() -> {
+            new PrincipalTela().setVisible(true);
         });
     }
    

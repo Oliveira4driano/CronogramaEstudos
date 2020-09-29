@@ -21,7 +21,7 @@ public class CronometroDAO {
     
     
     
-    public boolean incluir(Cronometro objcronometro) throws SQLException{
+    public boolean incluir(Cronometro objcronometro) throws SQLException, ClassNotFoundException{
         sql = "insert into  cronometro(cmttempo) values(?)";
         
         Conexao conexao = new Conexao();

@@ -25,10 +25,11 @@ public class MateriaDAO {
     private String sql ;
     private List<Materia> materias;
     private Materia materia;
+    private EditalDAO editalDAO;
  
    
      
-     public boolean incluir(Materia objmateria) throws SQLException
+     public boolean incluir(Materia objmateria) throws SQLException, ClassNotFoundException
     {
         sql ="INSERT INTO materia(matnome, matconhecimento, matedicodigo) VALUES(?,?,?)";
       
@@ -49,63 +50,71 @@ public class MateriaDAO {
             return false; }
 
     }
-    public Materia buscarPorId(long id) throws SQLException{
-        sql = "select matnome from materia where matcodigo = ?";
-        Materia materia = null;
-        Conexao conexao = null;
-        PreparedStatement pstmt = null;
+    public Materia buscarPorId(long id) throws SQLException, ClassNotFoundException{
+        sql = "select * from materia where matcodigo = ?";
+        materia = null;
+        Conexao conexao = new Conexao();
+        PreparedStatement pst = null;
         try {
-            pstmt = conexao.getConexao().prepareStatement(sql);
-            pstmt.setLong(1, id);
-            ResultSet result = pstmt.executeQuery();
+            pst = conexao.getConexao().prepareStatement(sql);
+            pst.setLong(1, id);
+            ResultSet result = pst.executeQuery();
            // MateriaDAO materiaDAO = new MateriaDAO();
             while(result.next()){
                 materia = new Materia();
+                materia.setId(result.getInt("matcodigo"));
                 materia.setNome(result.getString("matnome"));
                 return materia;
             }
             
-        } catch (Exception e) {
-        }
+        } catch (SQLException e) {
+            e.getMessage();
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+            }
        
         return null;
     } 
      
      
-     public List<Materia> lista(){
-         sql = "select matcodigo, matnome, matconhecimento, edinome \n" +
-"    from materia\n" +
-"    inner join edital on edicodigo = matedicodigo;";
-         materias = new ArrayList<Materia>();
+     public List<Materia> lista() throws ClassNotFoundException{
+         sql = "select matcodigo, matnome, matconhecimento, matedicodigo from materia";
+         materias = new ArrayList<>();
+         editalDAO = new EditalDAO();
          Conexao conexao = new Conexao();
-         PreparedStatement pstmt;
+         PreparedStatement pst = null;
         try {
-            pstmt = conexao.getConexao().prepareStatement(sql);
-             ResultSet result =  pstmt.executeQuery();
+            pst = conexao.getConexao().prepareStatement(sql);
+             ResultSet result =  pst.executeQuery();
              while(result.next()){
-                 Materia materia = new Materia();
+                 materia = new Materia();
                  materia.setId(result.getInt("matcodigo"));
                  materia.setNome(result.getString("matnome"));
                  materia.setConhecimento(result.getString("matconhecimento"));
-                 materia.getEdital().setNome(result.getString("edinome"));
+                 //materia.getEdital().setNome(result.getString("edinome"));
+                 materia.setEdital(editalDAO.buscarPorId(result.getInt("matedicodigo")));
                  materias.add(materia);
                          
              }
         } catch (SQLException ex) {
             Logger.getLogger(MateriaDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+            }
         return materias;
         
      }
-     public List<Materia> listaMateria(){
+     public List<Materia> listaMateria() throws ClassNotFoundException{
          sql = "select matnome \n" +
 "    from materia;";
-         materias = new ArrayList<Materia>();
+         materias = new ArrayList<>();
          Conexao conexao = new Conexao();
-         PreparedStatement pstmt;
+         PreparedStatement pst = null;
         try {
-            pstmt = conexao.getConexao().prepareStatement(sql);
-             ResultSet result =  pstmt.executeQuery();
+            pst = conexao.getConexao().prepareStatement(sql);
+             ResultSet result =  pst.executeQuery();
              while(result.next()){
                  Materia materia = new Materia();
                  //materia.setId(result.getInt("matcodigo"));
@@ -117,26 +126,29 @@ public class MateriaDAO {
              }
         } catch (SQLException ex) {
             Logger.getLogger(MateriaDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+            }
         return materias;
         
      }
      
-     public List<Materia> pesquisar(Materia objmateria) throws SQLException{
+     public List<Materia> pesquisar(Materia objmateria) throws SQLException, ClassNotFoundException{
                  
          sql = "select matcodigo, matnome, matconhecimento, edinome \n" +
             "  from materia\n" +
             "     inner join edital on edicodigo = matedicodigo\n" +
             "     where matnome like ?";
         Conexao conexao = new Conexao();
-        PreparedStatement pstmt = null;
-        ResultSet result = null;
+        PreparedStatement pst = null;
+        ResultSet result;
         
          try {
-             pstmt = conexao.getConexao().prepareStatement(sql);
-             pstmt.setString(1,"%"+ objmateria.getNome()+"%");
-             result =  pstmt.executeQuery();
-             materias = new ArrayList<Materia>();
+             pst = conexao.getConexao().prepareStatement(sql);
+             pst.setString(1,"%"+ objmateria.getNome()+"%");
+             result =  pst.executeQuery();
+             materias = new ArrayList<>();
              
              while(result.next()){
                  materia = new Materia();
@@ -148,27 +160,34 @@ public class MateriaDAO {
              }
          } catch (SQLException e) {
              Logger.getLogger(MateriaDAO.class.getName()).log(Level.SEVERE, null, e);
-         }
+         }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+            }
          
        
         return materias;
          }
-    public void alterar(Materia objmateria){
+    public void alterar(Materia objmateria) throws ClassNotFoundException, ClassNotFoundException{
+        sql = "update materia matnome =?, matconhecimento =?, matedicodigo =? where matcodigo =?";
+        Conexao conexao = new Conexao();
+        PreparedStatement pst = null;
         try {
-            sql = "update materia matnome =?, matconhecimento =?, matedicodigo =? where matcodigo =?";
+            
+        pst = conexao.getConexao().prepareStatement(sql);
+       pst.setString(1,objmateria.getNome());
+       pst.setString(2, objmateria.getConhecimento());
+       pst.setInt(3, (int) objmateria.getEdital().getId());
+       pst.setInt(4, objmateria.getId());
        
-       Conexao conexao = new Conexao();
-       PreparedStatement pstmt = conexao.getConexao().prepareStatement(sql);
-       pstmt.setString(1,objmateria.getNome());
-       pstmt.setString(2, objmateria.getConhecimento());
-       pstmt.setInt(3, (int) objmateria.getEdital().getId());
-       pstmt.setInt(4, objmateria.getId());
-       
-       pstmt.execute();
+       pst.execute();
             
         } catch (SQLException e) {
              e.getMessage();
-        }    
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+            }    
     }
          
      

@@ -5,25 +5,14 @@
  */
 package view;
 
-import com.toedter.calendar.JDayChooser;
 import controle.CronogramaDAO;
 import controle.MateriaDAO;
-import java.awt.HeadlessException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import static java.util.Collections.list;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
 import model.Cronograma;
 import model.CronogramaTabelaModeloDomingo;
 import model.Materia;
@@ -120,7 +109,7 @@ public final class CronogramaTela extends javax.swing.JFrame {
         cronogramaDAO = new CronogramaDAO();
         try {
             cronogramas = cronogramaDAO.buscarPornome(semana, dia);
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             JOptionPane.showMessageDialog(this,"pesquisarCronogramaBD Ocorreu um erro de banco de dados: "+e.getMessage());
         }
         
@@ -132,17 +121,19 @@ public final class CronogramaTela extends javax.swing.JFrame {
         try {
            
            materias =  materiaDAO.lista();
-            for (Materia materia : materias) {
-              //  comboMateria.addItem(materia.getId()+" - "+ materia.getNome());
-              comboMateria.addItem( materia.getNome());
+           materias.forEach((materia) -> {
+               //  comboMateria.addItem(materia.getId()+" - "+ materia.getNome());
+               comboMateria.addItem( materia.getNome());
                // System.out.println("combo"+materia);
-                
-            }
-        } catch (Exception e) {
+            });
+        } catch (ClassNotFoundException e) {
         }
     }
      public void preencherCronograma(){
         //materias = new ArrayList<>();
+         try {
+             
+         
         cronograma = new Cronograma();
         cronograma.setNomemateria((String) comboMateria.getSelectedItem());
            System.out.println("1");
@@ -178,20 +169,38 @@ public final class CronogramaTela extends javax.swing.JFrame {
       //  }
            
         String semana = converteListaEmString(lista);
-        System.out.println("2"+lista);
+       // System.out.println("2"+lista);
         cronograma.setDiaSemana( semana);  
-        System.out.println("2");
+       // System.out.println("2");
         cronograma.setSemana((String) comboSemana.getSelectedItem());
-        System.out.println("3");
+        //System.out.println("3");
         String tempo= ("H "+jSpinField1.getValue()+":"+jSpinField2.getValue()+" ~ "+jSpinField3.getValue()+":"+jSpinField4.getValue());          
         cronograma.setEstudoDiario(tempo);
-          System.out.println("4");   
+        //  System.out.println("4");   
         
      //  Materia mat = materias.get(comboMateria.getSelectedIndex());
       //  int x = mat.getId();
       //  System.out.println("5"+x);
       //  cronograma.getMateria().setId(x);      
              
+      } catch (Exception e) {
+         }
+    }
+     
+    public void limpacampos(){
+       comboSemana.setSelectedIndex(0);
+        comboMateria.setSelectedIndex(0);
+        jCheckDomingo.setSelected(false);
+        jCheckSegunda.setSelected(false);
+        jCheckTerca.setSelected(false);
+        jCheckQuarta.setSelected(false);
+        jCheckQuinta.setSelected(false);
+        jCheckSexta.setSelected(false);
+        jCheckSabado.setSelected(false);
+        jSpinField1.setValue(0);
+        jSpinField2.setValue(0);
+        jSpinField3.setValue(0);
+        jSpinField4.setValue(0);
     }
     
     
@@ -210,7 +219,7 @@ public final class CronogramaTela extends javax.swing.JFrame {
 
     
    
-    public void salvar(){
+    public void salvar() throws ClassNotFoundException{
         cronogramaDAO = new CronogramaDAO();
         try {
                               
@@ -222,7 +231,7 @@ public final class CronogramaTela extends javax.swing.JFrame {
         }
        
     }
-    
+    /*
     public void alterar(){
         cronogramaDAO = new CronogramaDAO();
         try {
@@ -231,7 +240,7 @@ public final class CronogramaTela extends javax.swing.JFrame {
         } catch (HeadlessException e) {
             Logger.getLogger(CronogramaTela.class.getName()).log(Level.SEVERE, null, e);
         }
-    }
+    }*/
     
     
     
@@ -1635,7 +1644,8 @@ public final class CronogramaTela extends javax.swing.JFrame {
             preencherCronograma();
             salvar();
             preencherTabela();
-        } catch (Exception ex) {
+            limpacampos();
+        } catch (ClassNotFoundException ex) {
             Logger.getLogger(ConteudoCadastroTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_botaoSalvarActionPerformed
@@ -1644,40 +1654,8 @@ public final class CronogramaTela extends javax.swing.JFrame {
         new PrincipalTela().setVisible(true);
         dispose();
     }//GEN-LAST:event_botaoVoltaActionPerformed
-
     
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(CronogramaTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(CronogramaTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(CronogramaTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(CronogramaTela.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new CronogramaTela().setVisible(true);
-            }
-        });
-    }
+    
     
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

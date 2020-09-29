@@ -3,6 +3,8 @@ package controle;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import javax.swing.JOptionPane;
 public class Conexao {
@@ -10,7 +12,7 @@ public class Conexao {
 
 
     private static Connection conexao;
-    public Conexao()
+    public Conexao() throws ClassNotFoundException 
     { try
         {
 
@@ -25,7 +27,7 @@ public class Conexao {
           //JOptionPane.showMessageDialog(null,"conexao ok");
          
         }
-        catch(Exception erro){
+        catch(SQLException erro){
             JOptionPane.showMessageDialog(null,
           "Ocorreu um erro de conexão. Verifique a Base de Dados indicada !"+"\n" +  erro.getMessage(),"Conexão",3);
             erro.printStackTrace();
@@ -40,6 +42,26 @@ public class Conexao {
         return conexao;
        
     }
+    
+    public static void fecharInstrucao(PreparedStatement instrucao){
+        if(instrucao != null){
+            try{
+                instrucao.close();
+            } catch(SQLException e){
+                System.out.println("Erro: " + e.getMessage());
+            }
+        }        
+    }
+    /*
+    public static void fecharConexao(Connection conexao){
+        if(conexao != null){
+            try{
+                conexao.close();
+            } catch(SQLException e){
+                System.out.println("Erro: " + e.getMessage());
+            }
+        }   
+    }*/
 
 
 

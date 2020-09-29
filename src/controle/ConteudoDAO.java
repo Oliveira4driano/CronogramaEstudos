@@ -5,18 +5,14 @@
  */
 package controle;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Conteudo;
-import model.Cronometro;
-import model.Materia;
 
 /**
  *
@@ -31,7 +27,7 @@ public class ConteudoDAO {
    
    
    
-   public boolean incluir(Conteudo objconteudo) throws SQLException{
+   public boolean incluir(Conteudo objconteudo) throws SQLException, ClassNotFoundException{
        
        sql = "insert into conteudo(connome, conmatcodigo) values(?,?)";
        
@@ -49,46 +45,56 @@ public class ConteudoDAO {
        }
    }
    
-   public void alterar(Conteudo objconteudo){
-        try {
-            sql = "update conteudo set contempo=?, conrevisao=? where concodigo=?";
-       
+   public void alterar(Conteudo objconteudo) throws ClassNotFoundException{
+       sql = "update conteudo set contempo=?, conrevisao=? where concodigo=?";
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt = conexao.getConexao().prepareStatement(sql);
-       pstmt.setString(1,objconteudo.getTempo());
-       pstmt.setString(2, objconteudo.getRevisao());
-       pstmt.setInt(3, objconteudo.getId());
+       PreparedStatement pst = null;
+        try {
+            
        
-       pstmt.execute();
+       
+       pst = conexao.getConexao().prepareStatement(sql);
+       pst.setString(1,objconteudo.getTempo());
+       pst.setString(2, objconteudo.getRevisao());
+       pst.setInt(3, objconteudo.getId());
+       
+       pst.execute();
             
         } catch (SQLException e) {
              e.getMessage();
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
         }    
     }
    
-   public void alterarData(Conteudo objconteudo){
-        try {
-            sql = "update conteudo set condata=? where concodigo=?";
-       
+   public void alterarData(Conteudo objconteudo) throws ClassNotFoundException{
+       sql = "update conteudo set condata=? where concodigo=?";     
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt = conexao.getConexao().prepareStatement(sql);
-       pstmt.setString(1,  objconteudo.getData());
-       pstmt.setInt(2, objconteudo.getId());
-       pstmt.execute();
+        PreparedStatement pst = null;
+        try {
+            
+       pst = conexao.getConexao().prepareStatement(sql);
+       pst.setString(1,  objconteudo.getData());
+       pst.setInt(2, objconteudo.getId());
+       pst.execute();
             
         } catch (SQLException e) {
              e.getMessage();
-        }    
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+        }      
    }
    
-   public List<Conteudo> lista(){
+   public List<Conteudo> lista() throws ClassNotFoundException{
        sql = "select concodigo, connome, contempo, condata, conrevisao, matnome from conteudo inner join materia on conmatcodigo = matcodigo;";
        conteudos = new ArrayList<Conteudo>();
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt;
+       PreparedStatement pst = null;
        try {
-           pstmt = conexao.getConexao().prepareStatement(sql);
-           ResultSet result = pstmt.executeQuery();
+           pst = conexao.getConexao().prepareStatement(sql);
+           ResultSet result = pst.executeQuery();
            while(result.next()){
                Conteudo conteudo = new Conteudo();
                conteudo.setId(result.getInt("concodigo"));
@@ -103,19 +109,22 @@ public class ConteudoDAO {
            }
        } catch (SQLException e) {
             e.getMessage();
-       }
+       }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+        }      
        return conteudos;
    }
-    public List<Conteudo> listaConteudo(){
+    public List<Conteudo> listaConteudo() throws ClassNotFoundException{
        sql = "select connome, matnome from conteudo inner join materia on conmatcodigo = matcodigo;";
-       conteudos = new ArrayList<Conteudo>();
+       conteudos = new ArrayList<>();
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt;
+       PreparedStatement pst = null;
        try {
-           pstmt = conexao.getConexao().prepareStatement(sql);
-           ResultSet result = pstmt.executeQuery();
+           pst = conexao.getConexao().prepareStatement(sql);
+           ResultSet result = pst.executeQuery();
            while(result.next()){
-               Conteudo conteudo = new Conteudo();
+               conteudo = new Conteudo();
               // conteudo.setId(result.getInt("concodigo"));
                 conteudo.setNome(result.getString("connome"));
               //  conteudo.setTempo(result.getString("contempo"));
@@ -128,13 +137,17 @@ public class ConteudoDAO {
            }
        } catch (SQLException e) {
             e.getMessage();
-       }
+       }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+        }      
+       
        return conteudos;
    }
    
    
    
-   public List<Conteudo> buscarPornome(String objconteudo){
+   public List<Conteudo> buscarPornome(String objconteudo) throws ClassNotFoundException{
        sql = "select concodigo, connome, contempo, condata, conrevisao from conteudo\n" +
 "   inner join materia on matcodigo = conmatcodigo\n" +
 "    where matnome = ?";
@@ -143,16 +156,16 @@ public class ConteudoDAO {
 "inner join materia on matcodigo = conmatcodigo\n" +
 "LEFT join cronometro on cmtconcodigo = concodigo\n" +
 "   where matnome =?";*/
-       conteudos = new ArrayList<Conteudo>();
-       Conteudo conteudo = null;
+       conteudos = new ArrayList<>();
+       conteudo = null;
        Conexao conexao = new Conexao();
-       PreparedStatement pstmt;
+       PreparedStatement pst = null;
        ResultSet result;
         try {
-            pstmt = conexao.getConexao().prepareStatement(sql);
-            pstmt.setString(1, objconteudo);
+            pst = conexao.getConexao().prepareStatement(sql);
+            pst.setString(1, objconteudo);
              
-            result = pstmt.executeQuery();
+            result = pst.executeQuery();
            // MateriaDAO materiaDAO = new MateriaDAO();
             while(result.next()){
                 conteudo = new Conteudo();
@@ -168,25 +181,27 @@ public class ConteudoDAO {
                 //return conteudo;
             }
             
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
             e.getMessage();
-        }
+        }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+        }   
          
        return  conteudos;
      
    }
-   public List<Conteudo> pesquisar(Conteudo objconteudo) throws SQLException{
+   public List<Conteudo> pesquisar(Conteudo objconteudo) throws SQLException, ClassNotFoundException{
         sql = "select connome, contempo, condata, conrevisao, matnome from conteudo inner join materia on conmatcodigo = matcodigo where connome like ?";
          Conexao conexao = new Conexao();
-        PreparedStatement pstmt = null;
+        PreparedStatement pst = null;
         ResultSet result = null;
         
          try {
-             pstmt = conexao.getConexao().prepareStatement(sql);
-             pstmt.setString(1,"%"+ objconteudo.getNome()+"%");
-             result =  pstmt.executeQuery();
-             conteudos = new ArrayList<Conteudo>();
+             pst = conexao.getConexao().prepareStatement(sql);
+             pst.setString(1,"%"+ objconteudo.getNome()+"%");
+             result =  pst.executeQuery();
+             conteudos = new ArrayList<>();
              
              while(result.next()){
                  conteudo = new Conteudo();
@@ -200,14 +215,17 @@ public class ConteudoDAO {
              }
          } catch (SQLException e) {
              Logger.getLogger(MateriaDAO.class.getName()).log(Level.SEVERE, null, e);
-         }
+         }finally{
+                Conexao.fecharInstrucao(pst);
+             //   Conexao.fecharConexao((Connection) conexao);
+        }  
          
        
         return conteudos;
    }
    
    
-   public void alterarConteudo(Conteudo objconteudo) throws SQLException{
+   public void alterarConteudo(Conteudo objconteudo) throws SQLException, ClassNotFoundException{
        sql="update conteudo connome=?, conmaticodigo=? where concodigo=?";
        
        Conexao conexao = new Conexao();

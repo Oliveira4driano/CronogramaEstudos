@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import model.Edital;
 import model.Materia;
 
 /**
@@ -193,15 +192,15 @@ public class MateriaAlteraTela extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-              
-        /*
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MateriaCadastroTela().setVisible(true);
-            }
-        });*/
-    }
+//    public static void main(String args[]) {
+//              
+//        /*
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+//                new MateriaCadastroTela().setVisible(true);
+//            }
+//        });*/
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton botaoSalvar;

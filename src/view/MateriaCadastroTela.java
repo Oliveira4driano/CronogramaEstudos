@@ -5,8 +5,12 @@
  */
 package view;
 
+import controle.EditalDAO;
 import controle.MateriaDAO;
+import java.awt.HeadlessException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -17,33 +21,77 @@ import model.Materia;
  *
  * @author Dev-2810
  */
-public class MateriaCadastroTela extends javax.swing.JFrame {
+public final class MateriaCadastroTela extends javax.swing.JFrame {
 
- private Materia materia = new Materia();
+ private final Materia materia = new Materia();
+ 
+ private List<Edital> editais = new ArrayList<>();
+ private final EditalDAO editalDAO = new EditalDAO();
 
     
     public MateriaCadastroTela() {
         initComponents();
         this.setLocationRelativeTo(null);
+        preencherEdital();
     }
     
+     public void preencherEdital(){
+        
+       // editais = new ArrayList<>();
+       // editalDAO = new EditalDAO();
+        try {          
+           editais =  editalDAO.listar();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,"Erro Registro!"+e);
+        }
+        comboEdital.removeAllItems();
+        editais.forEach((edital) -> {
+            comboEdital.addItem( edital.getNome()+"__"+edital.getCargo());
+           
+     }); /*
+     List<String> sortEdital=new ArrayList();
+     for(Edital edital: editais){
+     sortEdital.add(edital.getNome());
+     }
+     for(String sorte: sortEdital){
+     comboEdital.addItem(sorte);
+     }*/
+    }
     
    private void preencheDados(){
       materia.setNome(campoMateria.getText().toUpperCase());
       materia.setConhecimento((String) comboConhecimento.getSelectedItem());
-    //  materia.setEdital((Edital) comboEdital.getSelectedItem());
+      //Edital edital = new Edital();
+      String nomeEdital = (String) comboEdital.getSelectedItem();
+     
+      int id=0;
+       for (Edital e: editais) {
+           
+           if((e.getNome()+"__"+e.getCargo()).equals(nomeEdital)){
+               id =  (int) e.getId();
+               System.out.println("iddd"+ e.getId());
+           }
+           
+       }
+       try {
+           materia.setEdital(editalDAO.buscarPorId(id));
+       } catch (Exception e) {
+           JOptionPane.showMessageDialog(this,"Erro Registro!"+e);
+       }
+      
+      
      
    }
     
-    private void inserirBD() throws SQLException{
+    private void inserirBD() throws SQLException, ClassNotFoundException{
         MateriaDAO dao = new MateriaDAO();
         try {
             if(dao.incluir(materia)){
                 JOptionPane.showMessageDialog(this,"Registro salvo com sucesso!");
          
-            };
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,"Erro Registro salvo com sucesso!");
+            }
+        } catch (HeadlessException | SQLException e) {
+            JOptionPane.showMessageDialog(this,"Erro Registro!"+e);
         }
 
     }
@@ -51,9 +99,12 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
 
     private void limparcampo(){
         campoMateria.setText("");
+        comboConhecimento.setSelectedIndex(0);
+        comboEdital.setSelectedIndex(0);
     }
     
-    private void salvar() throws SQLException{
+    private void salvar() throws SQLException, ClassNotFoundException{
+            
               preencheDados();
              inserirBD();           
              limparcampo();
@@ -79,6 +130,8 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         comboConhecimento = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        comboEdital = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Cadastro de matéria");
@@ -105,6 +158,10 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
 
         jLabel2.setText("Conhecimento:");
 
+        jLabel3.setText("Edital:");
+
+        comboEdital.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -121,10 +178,15 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(campoMateria, javax.swing.GroupLayout.PREFERRED_SIZE, 285, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel1)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(comboConhecimento, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(jLabel3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(comboEdital, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(jLabel2)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(comboConhecimento, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                 .addContainerGap(19, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -134,7 +196,11 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addGap(3, 3, 3)
                 .addComponent(campoMateria, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(comboEdital, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(comboConhecimento))
@@ -168,7 +234,11 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
     private void botaoSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botaoSalvarActionPerformed
  
      try {
-         salvar();
+         try {
+             salvar();
+         } catch (ClassNotFoundException ex) {
+             Logger.getLogger(MateriaCadastroTela.class.getName()).log(Level.SEVERE, null, ex);
+         }
      } catch (SQLException ex) {
          Logger.getLogger(MateriaCadastroTela.class.getName()).log(Level.SEVERE, null, ex);
      }
@@ -184,21 +254,21 @@ public class MateriaCadastroTela extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
               
-        /*
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MateriaCadastroTela().setVisible(true);
-            }
-        });*/
+        
+        java.awt.EventQueue.invokeLater(() -> {
+            new MateriaCadastroTela().setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton botaoSalvar;
     private javax.swing.JTextField campoMateria;
     private javax.swing.JComboBox<String> comboConhecimento;
+    private javax.swing.JComboBox<String> comboEdital;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }
